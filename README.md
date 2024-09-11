@@ -1,2 +1,2 @@
-# apai4011
+# APAI4011
 Notes and Practices from APAI4011
