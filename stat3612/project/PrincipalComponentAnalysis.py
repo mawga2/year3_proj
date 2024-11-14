@@ -4,16 +4,11 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 
 train_df = pd.read_csv('data/train.csv')
-valid_df = pd.read_csv('data/valid.csv')
-test_df = pd.read_csv('data/test.csv')
 ehr_data = pd.read_csv('data/ehr_data.csv')
 
 train_data = train_df.merge(ehr_data, on='id', how='left')
-valid_data = valid_df.merge(ehr_data, on='id', how='left')
-test_data = test_df.merge(ehr_data, on='id', how='left')
 
 X_train = train_data.drop(columns=['id', 'readmitted_within_30days'])
-y_train = train_data['readmitted_within_30days']
 
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
