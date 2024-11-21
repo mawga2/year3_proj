@@ -33,9 +33,9 @@ X_train_resampled, y_train_resampled = smote.fit_resample(X_train_scaled, y_trai
 
 # Initialize and train XGBoost model
 xgb_model = xgb.XGBClassifier(
-    scale_pos_weight=1,  # Set based on class imbalance or leave as default
-    learning_rate=0.01,  # Example learning rate
-    n_estimators=200,  # Increase for more iterations
+    scale_pos_weight=1,
+    learning_rate=0.01, 
+    n_estimators=200,
     max_depth=5,
     use_label_encoder=False,
     eval_metric='auc'

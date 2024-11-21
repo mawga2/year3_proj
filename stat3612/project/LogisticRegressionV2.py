@@ -1,6 +1,6 @@
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 
@@ -35,15 +35,12 @@ ranking = [36, 2, 26, 16, 107, 146, 172, 76, 161, 144, 63, 55, 122, 134, 70, 111
 # Get column names from train data features
 column_names = X_train.columns.tolist()
 column_ranking = {column_names[i]: rank for i, rank in enumerate(ranking)}
-
-# Prepare sorted feature names based on ranking
 sorted_columns = sorted(column_ranking, key=column_ranking.get)
 
-# Select top 8 features based on ranking
-top_8_features = sorted_columns[:8]
-
-X_train_top = X_train[top_8_features]
-X_valid_top = X_valid[top_8_features]
+# Select top N features based on ranking
+top_n_features = sorted_columns[:8]
+X_train_top = X_train[top_n_features]
+X_valid_top = X_valid[top_n_features]
 
 # Standardize features
 scaler = StandardScaler()

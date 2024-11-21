@@ -32,8 +32,6 @@ ranking = [36, 2, 26, 16, 107, 146, 172, 76, 161, 144, 63, 55, 122, 134, 70, 111
 # Get column names from train data features
 column_names = X_train.columns.tolist()
 column_ranking = {column_names[i]: rank for i, rank in enumerate(ranking)}
-
-# Prepare sorted feature names based on ranking
 sorted_columns = sorted(column_ranking, key=column_ranking.get)
 
 # Initialize logistic regression model

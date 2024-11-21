@@ -1,11 +1,10 @@
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import roc_auc_score, roc_curve
 from imblearn.over_sampling import SMOTE
-from imblearn.under_sampling import RandomUnderSampler
 from imblearn.pipeline import Pipeline
+from sklearn.metrics import precision_score, recall_score, f1_score
 import matplotlib.pyplot as plt
 
 # Load CSV files
@@ -37,14 +36,12 @@ ranking = [36, 2, 26, 16, 107, 146, 172, 76, 161, 144, 63, 55, 122, 134, 70, 111
 # Get column names from train data features
 column_names = X_train.columns.tolist()
 column_ranking = {column_names[i]: rank for i, rank in enumerate(ranking)}
-
-# Prepare sorted feature names based on ranking
 sorted_columns = sorted(column_ranking, key=column_ranking.get)
 
-# Select top 8 features based on ranking
-top_8_features = sorted_columns[:30]
-X_train_top = X_train[top_8_features]
-X_valid_top = X_valid[top_8_features]
+# Select top N features based on ranking
+top_n_features = sorted_columns[:30]
+X_train_top = X_train[top_n_features]
+X_valid_top = X_valid[top_n_features]
 
 # Standardize features
 scaler = StandardScaler()
@@ -54,7 +51,7 @@ X_valid_scaled = scaler.transform(X_valid_top)
 # Set up resampling pipeline with SMOTE and Logistic Regression
 resampling_pipeline = Pipeline([
     ('smote', SMOTE(random_state=42)),
-    ('scaler', StandardScaler()),  # Standardize within the pipeline for balanced data
+    ('scaler', StandardScaler()),
     ('log_reg', LogisticRegression(C=0.0001, penalty='l2', max_iter=1000, random_state=42))
 ])
 
@@ -63,6 +60,16 @@ resampling_pipeline.fit(X_train_top, y_train)
 y_valid_probs = resampling_pipeline.predict_proba(X_valid_top)[:, 1]
 roc_auc = roc_auc_score(y_valid, y_valid_probs)
 print(f"Validation AUC with Resampling: {roc_auc:.4f}")
+
+# Calculate precision, recall, and F1 score
+y_valid_pred = resampling_pipeline.predict(X_valid_top)
+precision = precision_score(y_valid, y_valid_pred)
+recall = recall_score(y_valid, y_valid_pred)
+f1 = f1_score(y_valid, y_valid_pred)
+
+print(f"Validation Precision: {precision:.4f}")
+print(f"Validation Recall: {recall:.4f}")
+print(f"Validation F1 Score: {f1:.4f}")
 
 # Plot ROC Curve
 fpr, tpr, thresholds = roc_curve(y_valid, y_valid_probs)
