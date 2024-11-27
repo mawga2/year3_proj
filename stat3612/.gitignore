@@ -1,0 +1,4 @@
+/project/image_features/
+output.txt
+ehr_data.csv
+ehr_data.tfrecord
