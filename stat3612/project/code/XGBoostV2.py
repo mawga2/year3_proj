@@ -6,10 +6,10 @@ from sklearn.preprocessing import StandardScaler
 import shap
 
 # Load data
-train_df = pd.read_csv('data/train.csv')
-valid_df = pd.read_csv('data/valid.csv')
-test_df = pd.read_csv('data/test.csv')
-ehr_data = pd.read_csv('data/ehr_data.csv')
+train_df = pd.read_csv('../data/train.csv')
+valid_df = pd.read_csv('../data/valid.csv')
+test_df = pd.read_csv('../data/test.csv')
+ehr_data = pd.read_csv('../data/ehr_data.csv')
 
 # Merge datasets
 train_data = train_df.merge(ehr_data, on='id', how='left')

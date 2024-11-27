@@ -10,8 +10,8 @@ with open('data/ehr_preprocessed_seq_by_day_cat_embedding.pkl', 'rb') as f:
     ehr_data = pickle.load(f)
 
 # Load the data
-train_df = pd.read_csv('data/train.csv')
-val_df = pd.read_csv('data/valid.csv')
+train_df = pd.read_csv('../data/train.csv')
+val_df = pd.read_csv('../data/valid.csv')
 
 # Create the training dataset using only the features from the last day
 y_train = train_df['readmitted_within_30days'].values

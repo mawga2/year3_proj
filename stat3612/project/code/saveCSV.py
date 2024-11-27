@@ -29,10 +29,10 @@ def create_sequences(data, features, time_col='day', id_col='id', target_col='re
     return np.array(sequences_padded), np.array(targets)
 
 # Load datasets
-test_df = pd.read_csv('data/test.csv')
-train_df = pd.read_csv('data/train.csv')
-valid_df = pd.read_csv('data/valid.csv')
-ehr_data = pd.read_csv('data/ehr_data.csv')
+test_df = pd.read_csv('../data/test.csv')
+train_df = pd.read_csv('../data/train.csv')
+valid_df = pd.read_csv('../data/valid.csv')
+ehr_data = pd.read_csv('../data/ehr_data.csv')
 
 # Merge datasets on 'id'
 test_data = test_df.merge(ehr_data, on='id', how='left')

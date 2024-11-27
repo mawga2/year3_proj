@@ -8,9 +8,9 @@ from sklearn.preprocessing import PolynomialFeatures
 import pandas as pd
 
 # Load datasets
-train_df = pd.read_csv('data/train.csv')
-valid_df = pd.read_csv('data/valid.csv')
-ehr_data = pd.read_csv('data/ehr_data.csv')
+train_df = pd.read_csv('../data/train.csv')
+valid_df = pd.read_csv('../data/valid.csv')
+ehr_data = pd.read_csv('../data/ehr_data.csv')
 
 # Merge train_df and valid_df with ehr_data
 train_data = train_df.merge(ehr_data, on='id', how='left')
