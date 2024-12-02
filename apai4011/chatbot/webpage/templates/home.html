@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to the Medical Chatbot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(to right, #f0f4f8, #d9e9ee);
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+            color: #34495e;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            padding: 50px;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            animation: fadeIn 1s;
+        }
+
+        p {
+            color: #34495e;
+            font-size: 18px;
+            margin: 20px 0;
+            animation: fadeIn 1.2s;
+        }
+
+        a {
+            text-decoration: none;
+            color: white;
+            background-color: #27ae60;
+            padding: 12px 24px;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.2s;
+            display: inline-block;
+            animation: fadeIn 1.4s;
+        }
+
+        a:hover {
+            background-color: #218c54;
+            transform: translateY(-3px);
+        }
+
+        .image-container {
+            margin: 20px 0;
+            animation: fadeIn 1.6s;
+        }
+
+        img {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        footer {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Optional Decorative Elements */
+        .decorative {
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translate(-50%, -10%);
+            width: 100%;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            z-index: -1;
+        }
+
+        .animated-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, #f0f4f8, #d9e9ee, #f0f4f8, #d9e9ee);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+            z-index: -2;
+        }
+
+        @keyframes gradientAnimation {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .carousel {
+            display: flex;
+            overflow: hidden;
+            margin: 20px 0;
+            animation: fadeIn 1.8s;
+        }
+
+        .carousel-item {
+            min-width: 100%;
+            transition: transform 0.5s ease;
+        }
+
+        .carousel-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .carousel-button {
+            background-color: #27ae60;
+            border: none;
+            color: white;
+            padding: 10px;
+            margin: 0 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .carousel-button:hover {
+            background-color: #218c54;
+        }
+
+        .contact-form {
+            margin-top: 30px;
+            animation: fadeIn 2s;
+        }
+
+        .contact-form input,
+        .contact-form textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .contact-form button {
+            background-color: #27ae60;
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.2s;
+            cursor: pointer;
+        }
+
+        .contact-form button:hover {
+            background-color: #218c54;
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="animated-background"></div>
+    <div class="decorative"></div>
+    <div class="container">
+        <h1>Welcome to the Medical Chatbot</h1>
+        <p>Your virtual assistant for medical information and advice!</p>
+        <div class="image-container">
+            <img src="{{ url_for('static', filename='doctor_male.png') }}" alt="Doctor Image">
+        </div>
+        <p>Click the button below to start chatting and get the assistance you need.</p>
+        <a href="/chat"><i class="fas fa-comments"></i> Start Chat</a>
+
+        <div class="carousel">
+            <div class="carousel-item">
+                <p>"This chatbot is amazing! It helped me understand my symptoms and guided me to the right treatment."</p>
+            </div>
+            <div class="carousel-item">
+                <p>"A very useful tool for quick medical advice. Highly recommend it!"</p>
+            </div>
+            <div class="carousel-item">
+                <p>"The chatbot provided accurate information and was very easy to use."</p>
+            </div>
+        </div>
+        <div class="carousel-buttons">
+            <button class="carousel-button" onclick="prevSlide()">&#10094;</button>
+            <button class="carousel-button" onclick="nextSlide()">&#10095;</button>
+        </div>
+
+        <div class="contact-form">
+            <h3>Contact Us</h3>
+            <input type="text" id="name" placeholder="Your Name">
+            <input type="email" id="email" placeholder="Your Email">
+            <textarea id="message" placeholder="Your Message"></textarea>
+            <button id="send_message_button">Send Message</button>
+        </div>
+    </div>
+    <footer>
+        &copy; 2024 Medical Chatbot. All rights reserved.
+    </footer>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.carousel-item');
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.style.display = i === index ? 'block' : 'none';
+            });
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            showSlide(currentSlide);
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+            showSlide(currentSlide);
+        }
+
+        showSlide(currentSlide);
+
+        document.getElementById("send_message_button").onclick = function() {
+            const name = document.getElementById("name").value;
+            const email = document.getElementById("email").value;
+            const message = document.getElementById("message").value;
+
+            if (!name || !email || !message) {
+                alert("Please fill in all fields.");
+                return;
+            }
+
+            fetch('/send_message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, email, message }),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert("Message sent successfully!");
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+                alert("There was an error sending your message. Please try again later.");
+            });
+        };
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Chatbot</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #6dd5fa, #ffffff);
+            margin: 0;
+            padding: 20px;
+            color: #2c3e50;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        body.dark-mode {
+            background: linear-gradient(to right, #0f1c27, #12192b);
+            color: #ececec;
+        }
+        #header {
+            padding: 20px;
+            background-color: #e3f2fd;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            transition: background-color 0.3s;
+        }
+        body.dark-mode #header {
+            background-color: #00796b;
+        }
+        #header img {
+            width: 100px;
+            height: auto;
+            margin-left: auto;
+        }
+        #conversation {
+            width: 100%;
+            height: 400px;
+            background-color: #ffffff;
+            padding: 15px;
+            overflow-y: scroll;
+            font-size: 18px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        body.dark-mode #conversation {
+            background-color: #1b2631;
+        }
+        .message {
+        padding: 10px;
+        border-radius: 10px;
+        margin: 10px 0;
+        max-width: 70%;
+        clear: both;
+        position: relative;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        }
+
+        .emoji-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-right: 10px;
+        border-right: 2px solid rgba(255, 255, 255, 0.5);
+        padding-right: 10px;
+        }
+
+        .emoji {
+        max-width: 40px;
+        height: auto;
+        }
+
+        .user-message {
+            background-color: #00796b;
+            color: white;
+            float: right;
+            justify-content: flex-end;
+        }
+        body.dark-mode .user-message {
+            background-color: #16a085;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+        }
+        .bot-message {
+            background-color: #0288d1;
+            color: white;
+            float: left;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+        body.dark-mode .bot-message {
+            background-color: #3498db;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+        }
+        #user_input {
+            width: 70%;
+            padding: 10px;
+            border: none;
+            background-color: #e0f7fa;
+            font-size: 16px;
+            margin-right: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        body.dark-mode #user_input {
+            background-color: #34495e;
+            color: #ecf0f1;
+        }
+        #send_button, #clear_button, #dark_mode_button {
+            width: 20%;
+            height: 50px;
+            border: none;
+            background-color: #00796b;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+        }
+        #send_button:hover, #clear_button:hover, #dark_mode_button:hover {
+            background-color: #005b50;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        #clear_button {
+            background-color: #d32f2f;
+        }
+        #clear_button:hover {
+            background-color: #ba000d;
+        }
+        #dark_mode_button {
+            background-color: #34495e;
+        }
+        body.dark-mode #dark_mode_button {
+            background-color: #2ecc71;
+        }
+        #dark_mode_button:hover {
+            background-color: #27ae60;
+        }
+        #header h2 {
+            margin: 0;
+            font-weight: bold;
+        }
+        #header p {
+            margin: 0;
+            font-size: 14px;
+        }
+        #quick_replies {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .quick_reply {
+            padding: 10px 20px;
+            background-color: #00796b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .quick_reply:hover {
+            background-color: #005b50;
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <div>
+            <h2>Medical Chatbot</h2>
+            <p><br>Welcome to the Medical Chatbot! I can assist you with information about diseases, provide suggestions based on your symptoms, or type 'help' for more details.</p>
+        </div>
+        <img src="{{ url_for('static', filename='doctor.png') }}" alt="Doctor Image">
+    </div>
+    <div id="conversation"></div>
+    <div style="display: flex; margin-top: 10px;">
+        <input type="text" id="user_input" placeholder="Type your message here...">
+        <button id="send_button">Send</button>
+        <button id="clear_button">Clear</button>
+        <button id="dark_mode_button">Toggle Dark Mode</button>
+    </div>
+    <div id="quick_replies">
+        <button class="quick_reply">Symptoms</button>
+        <button class="quick_reply">Diseases</button>
+        <button class="quick_reply">Help</button>
+    </div>
+
+    <script>
+        document.getElementById("send_button").onclick = function() {
+            const userInput = document.getElementById("user_input").value;
+            if (!userInput.trim()) {
+                alert("Please enter a message.");
+                return; 
+            }
+            document.getElementById("conversation").innerHTML += `
+                <div class="message user-message">
+                    <div>${userInput}</div>
+                </div>`;
+            document.getElementById("user_input").value = "";
+
+            const loadingMessage = `
+                <div class="message bot-message">
+                    <div class="emoji-container">
+                        <img src="{{ url_for('static', filename='bot.png') }}" class="emoji" alt="Bot Image">
+                    </div>
+                    <div>Typing...</div>
+                </div>`;
+            document.getElementById("conversation").innerHTML += loadingMessage;
+            document.getElementById("conversation").scrollTop = document.getElementById("conversation").scrollHeight;
+
+            fetch('/get_response', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'message=' + encodeURIComponent(userInput)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const botResponse = data.response.replace(/\n/g, '<br>');
+                document.getElementById("conversation").innerHTML = document.getElementById("conversation").innerHTML.replace(loadingMessage, `
+                    <div class="message bot-message">
+                        <div class="emoji-container">
+                            <img src="{{ url_for('static', filename='bot.png') }}" class="emoji" alt="Bot Image">
+                        </div>
+                        <div>${botResponse}</div>
+                    </div>`);
+                document.getElementById("conversation").scrollTop = document.getElementById("conversation").scrollHeight;
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+                document.getElementById("conversation").innerHTML += `
+                    <div class="message bot-message">
+                        <div class="emoji-container">
+                            <img src="{{ url_for('static', filename='bot.png') }}" class="emoji" alt="Bot Image">
+                        </div>
+                        <div>Sorry, something went wrong. Please try again later.</div>
+                    </div>`;
+                document.getElementById("conversation").scrollTop = document.getElementById("conversation").scrollHeight;
+            });
+        };
+
+        document.getElementById("clear_button").onclick = function() {
+            document.getElementById("conversation").innerHTML = "";
+            document.getElementById("conversation").scrollTop = document.getElementById("conversation").scrollHeight;
+        };
+
+        document.getElementById("dark_mode_button").onclick = function() {
+            document.body.classList.toggle("dark-mode");
+        };
+
+        document.querySelectorAll(".quick_reply").forEach(button => {
+            button.onclick = function() {
+                const quickReply = this.textContent;
+                document.getElementById("user_input").value = quickReply;
+                document.getElementById("send_button").click();
+            };
+        });
+    </script>
+</body>
+</html>
