@@ -11,6 +11,9 @@ from transformers import BertTokenizer, BertForSequenceClassification, TextClass
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
+from zhipuai import ZhipuAI
+from flask import Flask, render_template, request, jsonify
+import os
 
 # Download necessary NLTK packages
 nltk.download('stopwords')
@@ -415,3 +418,125 @@ def NLU(text):
         return 1, target
     else:
         return 2, None
+
+app = Flask(__name__)
+
+# Set up the file paths for the CSVs
+CSV_PATH_1 = "../knowledge_base/kaggle_diseases_precautionNdescriptionNmedicine_v2.csv"
+CSV_PATH_2 = "../knowledge_base/modified_2.csv"
+
+# Function to read 1.csv (diagnosis-related content)    
+def load_csv_1(file_path):
+    try:
+        df = pd.read_csv(file_path)
+        df.columns = [col.lower() for col in df.columns]
+        return df
+    except Exception as e:
+        print(f"Error reading {file_path}: {str(e)}")
+        return pd.DataFrame()
+    
+# Function to read 2.csv (information-related content)
+def load_csv_2(file_path):
+    try:
+        df = pd.read_csv(file_path)
+        df.columns = [col.lower() for col in df.columns]
+        return df
+    except Exception as e:
+        print(f"Error reading {file_path}: {str(e)}")
+        return pd.DataFrame()
+
+disease_definitions_df = load_csv_1(CSV_PATH_1)  # Content for diagnosis
+info_definitions_df = load_csv_2(CSV_PATH_2)  # Content for information
+
+@app.route('/')
+def home():
+    return render_template('home.html')
+
+@app.route('/chat')
+def chat():
+    return render_template('chatbot_interface.html')
+
+@app.route('/get_response', methods=['POST'])
+def get_response():
+    user_message = request.form['message'].lower()
+
+    # Using the NLU model to detect intent and entities
+    try:
+        intent, entities = NLU(user_message)
+        if intent == 0: # Diagnosis intent
+            matched = disease_definitions_df[disease_definitions_df['disease'].str.contains(entities, case=False, na=False)]
+            if not matched.empty:
+                response = (
+                    f"{matched['disease'].values[0]}: {matched['short_description'].values[0]}\n\n"
+                    f"Key facts: {matched['keyfacts'].values[0]}\n\n"
+                    f"Precautions: {matched['precaution_1'].values[0]}, {matched['precaution_2'].values[0]}, "
+                    f"{matched['precaution_3'].values[0]}, {matched['precaution_4'].values[0]}\n\n"
+                    f"Medicines: {matched['medicine'].values[0]}"
+                )
+            else:
+                response = f"I don't have information on {entities}."
+        elif intent == 1: # Info intent
+            entities = entities.lower()
+            matched = info_definitions_df[info_definitions_df['key_words'].str.strip() == entities]
+
+            if matched.empty: # Search within parentheses
+                entities_in_parentheses = info_definitions_df['key_words'].apply(lambda x: re.search(r'\((.*?)\)', x))
+                matched = info_definitions_df[entities_in_parentheses.apply(lambda x: x.group(1) if x else '').str.match(entities, case=False, na=False)]
+            
+            if matched.empty: # Search as part of content
+                matched = info_definitions_df[info_definitions_df['key_words'].str.contains(entities, case=False, na=False)]
+
+            if matched.empty: # If all fails, ping chatGLM
+                matched = get_from_chatGLM(entities)
+            else:
+                response = (
+                    f"{matched['key_words'].values[0]}: {matched['definition'].values[0]}\n\n"
+                    f"If you want to know more information, you can visit Healthline.com: {matched['url'].values[0]}"
+                )
+        else:
+            response = f"I'm not sure how to help with '{user_message}'. Could you clarify?"
+
+    except Exception as e:
+        response = f"An error occurred: {str(e)}"
+    
+    return jsonify({"response": response})
+
+client = ZhipuAI(api_key="6026d5961c40106882cd6848016ed219.06LGFZj3PNth6GmI")
+
+def get_from_chatGLM(entities):
+    try:
+        # Define the task for ChatGLM
+        messages = [
+            {
+                "role": "user",
+                "content": f"Your task is to provide information on the following query: {entities}"
+            }
+        ]
+        
+        # Call the ChatGLM API
+        response = client.chat.completions.create(
+            model="glm-4-plus",
+            messages=messages,
+        )
+        
+        # Extract and return the response
+        output_message = response.choices[0].message.content.strip()
+        return output_message if output_message else "Sorry, I couldn't find relevant information."
+    
+    except Exception as e:
+        return f"Error while querying ChatGLM: {str(e)}"
+
+@app.route('/send_message', methods=['POST'])
+def send_message():
+    data = request.get_json()
+    name = data.get('name')
+    email = data.get('email')
+    message = data.get('message')
+
+    # Process the message (e.g., store in database, send email)
+    print(f"Received message from {name} ({email}): {message}")
+
+    return jsonify({"status": "success"}), 200
+
+if __name__ == '__main__':
+    app.run(debug=True)
