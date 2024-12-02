@@ -97,10 +97,10 @@ precision = precision_score(y_valid, y_valid_pred)
 recall = recall_score(y_valid, y_valid_pred)
 f1 = f1_score(y_valid, y_valid_pred)
 
-print(f"Precision: {precision:.4f}")
-print(f"Recall: {recall:.4f}")
-print(f"F1 Score: {f1:.4f}")
-print(f"AUROC: {roc_auc:.4f}")
+print(f"Precision: {precision:.17f}")
+print(f"Recall: {recall:.17f}")
+print(f"F1 Score: {f1:.17f}")
+print(f"AUROC: {roc_auc:.17f}")
 
 '''
 # Plot ROC Curve
