@@ -12,7 +12,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from zhipuai import ZhipuAI
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session
 import os
 
 # Download necessary NLTK packages
@@ -420,6 +420,7 @@ def NLU(text):
         return 2, None
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)
 
 # Set up the file paths for the CSVs
 CSV_PATH_1 = "../knowledge_base/kaggle_diseases_precautionNdescriptionNmedicine_v2.csv"
@@ -465,14 +466,29 @@ def get_response():
         intent, entities = NLU(user_message)
         if intent == 0: # Diagnosis intent
             matched = disease_definitions_df[disease_definitions_df['disease'].str.contains(entities, case=False, na=False)]
+
             if not matched.empty:
-                response = (
-                    f"{matched['disease'].values[0]}: {matched['short_description'].values[0]}\n\n"
-                    f"Key facts: {matched['keyfacts'].values[0]}\n\n"
-                    f"Precautions: {matched['precaution_1'].values[0]}, {matched['precaution_2'].values[0]}, "
-                    f"{matched['precaution_3'].values[0]}, {matched['precaution_4'].values[0]}\n\n"
-                    f"Medicines: {matched['medicine'].values[0]}"
-                )
+                disease_info = []
+
+                if pd.notna(matched['disease'].values[0]) and matched['disease'].values[0].strip():
+                    disease_info.append(f"{matched['disease'].values[0]}: {matched['short_description'].values[0]}")
+
+                if pd.notna(matched['keyfacts'].values[0]) and matched['keyfacts'].values[0].strip():
+                    disease_info.append(f"Key facts: {matched['keyfacts'].values[0]}")
+
+                precautions = []
+                for i in range(1, 5):
+                    precaution = matched[f'precaution_{i}'].values[0]
+                    if pd.notna(precaution) and precaution.strip():
+                        precautions.append(precaution)
+                if precautions:
+                    disease_info.append(f"Precautions: {', '.join(precautions)}")
+
+                if pd.notna(matched['medicine'].values[0]) and matched['medicine'].values[0].strip():
+                    disease_info.append(f"Medicines: {matched['medicine'].values[0]}")
+
+                # Combine the response sections
+                response = "\n\n".join(disease_info)
             else:
                 response = f"I don't have information on {entities}."
         elif intent == 1: # Info intent
