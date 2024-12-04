@@ -449,6 +449,25 @@ def load_csv_2(file_path):
 disease_definitions_df = load_csv_1(CSV_PATH_1)  # Content for diagnosis
 info_definitions_df = load_csv_2(CSV_PATH_2)  # Content for information
 
+# Dialogue State Tracker
+class DialogueStateTracker:
+    def __init__(self):
+        self.latest_intent = None
+        self.latest_entity = None
+        self.info_input_history = ""
+
+    def update_state(self, intent, entities, user_input):
+        if self.latest_intent == 0 and intent == 1:
+            self.info_input_history = ""
+
+        self.latest_intent = intent
+        self.latest_entity = entities
+
+        if intent == 0:
+            self.info_input_history += f" {user_input}".strip()
+
+tracker = DialogueStateTracker()
+
 @app.route('/')
 def home():
     return render_template('home.html')
@@ -460,57 +479,79 @@ def chat():
 @app.route('/get_response', methods=['POST'])
 def get_response():
     user_message = request.form['message'].lower()
+    current_user_message = user_message
 
     # Using the NLU model to detect intent and entities
     try:
+        intent_check, entities = NLU(current_user_message)
+
+        if intent_check == 1:
+            tracker.info_input_history = ""
+
+        if tracker.latest_intent == 0:
+            user_message = f"{tracker.info_input_history} {current_user_message}".strip()
+
         intent, entities = NLU(user_message)
-        if intent == 0: # Diagnosis intent
-            matched = disease_definitions_df[disease_definitions_df['disease'].str.contains(entities, case=False, na=False)]
-
-            if not matched.empty:
-                disease_info = []
-
-                if pd.notna(matched['disease'].values[0]) and matched['disease'].values[0].strip():
-                    disease_info.append(f"{matched['disease'].values[0]}: {matched['short_description'].values[0]}")
-
-                if pd.notna(matched['keyfacts'].values[0]) and matched['keyfacts'].values[0].strip():
-                    disease_info.append(f"Key facts: {matched['keyfacts'].values[0]}")
-
-                precautions = []
-                for i in range(1, 5):
-                    precaution = matched[f'precaution_{i}'].values[0]
-                    if pd.notna(precaution) and precaution.strip():
-                        precautions.append(precaution)
-                if precautions:
-                    disease_info.append(f"Precautions: {', '.join(precautions)}")
-
-                if pd.notna(matched['medicine'].values[0]) and matched['medicine'].values[0].strip():
-                    disease_info.append(f"Medicines: {matched['medicine'].values[0]}")
-
-                # Combine the response sections
-                response = "\n\n".join(disease_info)
+    
+        if "can you tell me more" in current_user_message:
+            if tracker.latest_entity:
+                matched = disease_definitions_df[disease_definitions_df['disease'].str.contains(tracker.latest_entity, case=False, na=False)]
+                if not matched.empty:
+                    entity = tracker.latest_entity.lower()
+                    response = (
+                        f"Here's more information about {entity}:\n\n"
+                        f"{matched['long_description'].values[0]}\n\n"
+                        f"Here are some key facts:\n\n{matched['keyfacts'].values[0]}"
+                    )
+                else:
+                    response = f"I don't have additional information on {tracker.latest_entity}."
             else:
-                response = f"I don't have information on {entities}."
-        elif intent == 1: # Info intent
-            entities = entities.lower()
-            matched = info_definitions_df[info_definitions_df['key_words'].str.strip() == entities]
-
-            if matched.empty: # Search within parentheses
-                entities_in_parentheses = info_definitions_df['key_words'].apply(lambda x: re.search(r'\((.*?)\)', x))
-                matched = info_definitions_df[entities_in_parentheses.apply(lambda x: x.group(1) if x else '').str.match(entities, case=False, na=False)]
-            
-            if matched.empty: # Search as part of content
-                matched = info_definitions_df[info_definitions_df['key_words'].str.contains(entities, case=False, na=False)]
-
-            if matched.empty: # If all fails, ping chatGLM
-                matched = get_from_chatGLM(entities)
-            else:
-                response = (
-                    f"{matched['key_words'].values[0]}: {matched['definition'].values[0]}\n\n"
-                    f"If you want to know more information, you can visit Healthline.com: {matched['url'].values[0]}"
-                )
+                response = "I need more context to provide detailed information."
         else:
-            response = f"I'm not sure how to help with '{user_message}'. Could you clarify?"
+            tracker.update_state(intent, entities, current_user_message)
+
+            if intent == 0: # Diagnosis intent
+                matched = disease_definitions_df[disease_definitions_df['disease'].str.contains(entities, case=False, na=False)]
+                if not matched.empty:
+                    disease = matched['disease'].values[0].lower()
+                    disease_info = [f"I think you might have {disease}, {matched['short_description'].values[0]}"]
+
+                    precautions = [
+                        matched[f'precaution_{i}'].values[0] for i in range(1, 5)
+                        if pd.notna(matched[f'precaution_{i}'].values[0]) and matched[f'precaution_{i}'].values[0].strip()
+                    ]
+
+                    if precautions:
+                        disease_info.append("These actions might be beneficial:\n" + '\n'.join(precautions))
+
+                    if pd.notna(matched['medicine'].values[0]) and matched['medicine'].values[0].strip():
+                        disease_info.append(f"Here are some recommended medicine that might be beneficial to you: {matched['medicine'].values[0]}")
+
+                    disease_info.append("Please consult your healthcare provider for a proper diagnosis.")
+                    response = "\n\n".join(disease_info)
+                else:
+                    response = f"I don't have information on {entities}."
+
+            elif intent == 1: # Info intent
+                entities = entities.lower()
+                matched = info_definitions_df[info_definitions_df['key_words'].str.strip() == entities]
+
+                if matched.empty: # Search within parentheses
+                    entities_in_parentheses = info_definitions_df['key_words'].apply(lambda x: re.search(r'\((.*?)\)', x))
+                    matched = info_definitions_df[entities_in_parentheses.apply(lambda x: x.group(1) if x else '').str.match(entities, case=False, na=False)]
+                
+                if matched.empty: # Search as part of content
+                    matched = info_definitions_df[info_definitions_df['key_words'].str.contains(entities, case=False, na=False)]
+
+                if matched.empty: # If all fails, ping chatGLM
+                    matched = get_from_chatGLM(entities)
+                else:
+                    response = (
+                        f"Here are some information about {matched['key_words'].values[0]}: \n\n{matched['definition'].values[0]}\n\n"
+                        f"If you want to know more information, you can visit Healthline.com: {matched['url'].values[0]}"
+                    )
+            else:
+                response = f"I'm not sure how to help with '{user_message}'. Could you clarify?"
 
     except Exception as e:
         response = f"An error occurred: {str(e)}"
