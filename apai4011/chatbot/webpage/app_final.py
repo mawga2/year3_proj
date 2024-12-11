@@ -548,10 +548,10 @@ def get_response():
                 else:
                     response = (
                         f"Here are some information about {matched['key_words'].values[0]}: \n\n{matched['definition'].values[0]}\n\n"
-                        f"If you want to know more information, you can visit Healthline.com: {matched['url'].values[0]}"
+                        f"If you want to know more information, you can visit Healthdirect.com: {matched['url'].values[0]}"
                     )
             else:
-                response = f"I'm not sure how to help with '{user_message}'. Could you clarify?"
+                response = get_from_chatGLM(current_user_message)
 
     except Exception as e:
         response = f"An error occurred: {str(e)}"
