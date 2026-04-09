@@ -1,6 +1,6 @@
 torch==2.5.0
 spacy==3.8.2
-nltk==3.9.1
+nltk==3.9.4
 pytextrank==3.3.0
 pandas==2.2.3
 transformers==4.45.2
