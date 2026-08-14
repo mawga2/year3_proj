@@ -1,4 +1,4 @@
-torch==2.5.0
+torch==2.13.0
 spacy==3.8.2
 nltk==3.10.0
 pytextrank==3.3.0
